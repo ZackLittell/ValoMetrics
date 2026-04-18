@@ -14,6 +14,7 @@ def scrape_data():
     all_names = soup.find_all("td", class_="mod-player mod-a")
     acs = soup.find_all("td", class_="mod-color-sq mod-acs")
     stats = soup.find_all("td")
+    all_agents = soup.find_all("td", class_="mod-agents")
 
     players = []
 
@@ -27,6 +28,14 @@ def scrape_data():
         team_name = split_text[1]
 
         row = i * num_stat
+
+        agent_pngs = all_agents[i].find_all("img")
+
+        agents = []
+        for png in agent_pngs:
+            src = png.get("src", "")
+            agent_name = src.split("/")[-1].replace(".png", "")
+            agents.append(agent_name)
 
         rounds = int(stats[row + 2].text.strip())
         kills = int(stats[row + 16].text.strip())
@@ -42,7 +51,8 @@ def scrape_data():
             "kills": kills,
             "deaths": deaths,
             "assists": assists,
-            "KAST": kast
+            "KAST": kast,
+            "agents": agents
         }
 
         players.append(player)
