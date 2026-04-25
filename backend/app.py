@@ -115,7 +115,7 @@ def compare_teams(team1: str, team2: str):
         SUM(ps.assists) AS team_assists,
         ROUND(AVG(ps.acs), 2) AS average_acs,
         ROUND(AVG(ps.kast), 2) AS average_kast,
-        ROUND(SUM(ps.rounds) / 5, 2) AS team_rounds
+        ROUND(SUM(ps.rounds) / 5) AS team_rounds
     FROM teams t
     JOIN players p ON t.team_id = p.team_id
     JOIN player_stats ps ON p.player_id = ps.player_id
