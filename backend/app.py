@@ -102,5 +102,43 @@ def import_data():
 
     return jsonify({"message": "Scraped data imported successfully"})
 
+@app.route("/compare-teams/<team1>/<team2>")
+def compare_teams(team1: str, team2: str):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+    SELECT 
+        t.name AS team_name,
+        SUM(ps.kills) AS team_kills,
+        SUM(ps.deaths) AS team_deaths,
+        SUM(ps.assists) AS team_assists,
+        ROUND(AVG(ps.acs), 2) AS average_acs,
+        ROUND(AVG(ps.kast), 2) AS average_kast,
+        ROUND(SUM(ps.rounds) / 5, 2) AS team_rounds
+    FROM teams t
+    JOIN players p ON t.team_id = p.team_id
+    JOIN player_stats ps ON p.player_id = ps.player_id
+    WHERE t.name = %s
+    GROUP BY t.name
+    """
+
+    cursor.execute(query, (team1,))
+    team1_data = cursor.fetchone()
+
+    cursor.execute(query, (team2,))
+    team2_data = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if team1_data is None or team2_data is None:
+        return jsonify({"error": "One or both teams not found"}), 404
+    
+    return jsonify({
+        "team1": team1_data,
+        "team2": team2_data
+    })
+
 if __name__ == "__main__":
     app.run(debug=True)
