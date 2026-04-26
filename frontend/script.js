@@ -67,14 +67,45 @@ function compareTeams() {
             teamResults.innerHTML = `
                 <h3>${data.team1.team_name} vs ${data.team2.team_name}</h3>
 
-                <p><strong>Team Kills:</strong> ${data.team1.team_kills} vs ${data.team2.team_kills}</p>
-                <p><strong>Team Deaths:</strong> ${data.team1.team_deaths} vs ${data.team2.team_deaths}</p>
-                <p><strong>Team K/D:</strong> ${(data.team1.team_kills / data.team1.team_deaths).toFixed(2)} vs ${(data.team2.team_kills / data.team2.team_deaths).toFixed(2)}</p>
-                <p><strong>Team Assists:</strong> ${data.team1.team_assists} vs ${data.team2.team_assists}</p>
-                <p><strong>Average ACS:</strong> ${data.team1.average_acs} vs ${data.team2.average_acs}</p>
-                <p><strong>Average KAST:</strong> ${data.team1.average_kast}% vs ${data.team2.average_kast}%</p>
-                <p><strong>Team Rounds:</strong> ${data.team1.team_rounds} vs ${data.team2.team_rounds}</p>
-                <p><strong>Team KPR:</strong> ${(data.team1.team_kills / data.team1.team_rounds).toFixed(2)} vs ${(data.team2.team_kills / data.team2.team_rounds).toFixed(2)}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Team</th>
+                            <th>Kills</th>
+                            <th>Deaths</th>
+                            <th>Assists</th>
+                            <th>K/D</th>
+                            <th>ACS</th>
+                            <th>KAST</th>
+                            <th>Rounds</th>
+                            <th>KPR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${data.team1.team_name}</td>
+                            <td>${data.team1.team_kills}</td>
+                            <td>${data.team1.team_deaths}</td>
+                            <td>${data.team1.team_assists}</td>
+                            <td>${(data.team1.team_kills / data.team1.team_deaths).toFixed(2)}</td>
+                            <td>${data.team1.average_acs}</td>
+                            <td>${data.team1.average_kast}%</td>
+                            <td>${data.team1.team_rounds}</td>
+                            <td>${(data.team1.team_kills / data.team1.team_rounds).toFixed(2)}</td>
+                        </tr>
+                        <tr>
+                            <td>${data.team2.team_name}</td>
+                            <td>${data.team2.team_kills}</td>
+                            <td>${data.team2.team_deaths}</td>
+                            <td>${data.team2.team_assists}</td>
+                            <td>${(data.team2.team_kills / data.team2.team_deaths).toFixed(2)}</td>
+                            <td>${data.team2.average_acs}</td>
+                            <td>${data.team2.average_kast}%</td>
+                            <td>${data.team2.team_rounds}</td>
+                            <td>${(data.team2.team_kills / data.team2.team_rounds).toFixed(2)}</td>
+                        </tr>
+                    </tbody>
+                </table>
             `;
         })
         .catch(error => {
