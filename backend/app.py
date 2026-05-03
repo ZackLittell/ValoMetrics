@@ -59,6 +59,7 @@ def import_data():
     cursor = conn.cursor()
 
     for player in players:
+        ## TEAMS
         cursor.execute("SELECT team_id FROM teams WHERE name = %s", (player["team"],))
         team_result = cursor.fetchone()
 
@@ -69,6 +70,7 @@ def import_data():
             conn.commit()
             team_id = cursor.lastrowid
 
+        ## PLAYERS
         cursor.execute("SELECT player_id FROM players WHERE name = %s", (player["name"],))
         player_result = cursor.fetchone()
 
@@ -82,18 +84,33 @@ def import_data():
             conn.commit()
             player_id = cursor.lastrowid
 
+        ## EVENTS
+        cursor.execute("SELECT event_id FROM events WHERE name = %s", (player["event"],))
+        event_result = cursor.fetchone()
+
+        if event_result:
+            event_id = event_result[0]
+        else:
+            cursor.execute(
+                "INSERT INTO events (name) VALUES (%s)",
+                (player["event"],)
+            )
+            conn.commit()
+            event_id = cursor.lastrowid
+
         cursor.execute("""
-            INSERT INTO player_stats (player_id, rounds, kills, deaths, assists, acs, kast, agent)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO player_stats (player_id, event_id, rounds, kills, deaths, assists, acs, kast, agent)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             player_id,
+            event_id,
             player["rounds"],
             player["kills"],
             player["deaths"],
             player["assists"],
             player["acs"],
             player["KAST"],         
-            "AGENTS PLACEHOLDER"     
+            ",".join(player.get("agents", []))    
         ))
         conn.commit()
 
@@ -139,6 +156,43 @@ def compare_teams(team1: str, team2: str):
         "team1": team1_data,
         "team2": team2_data
     })
+
+@app.route("/team-event-stats/<team1>/<team2>")
+def team_event_stats(team1: str, team2: str):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    query = """
+    SELECT
+        e.event_id,
+        e.name AS event_name,
+        t.name AS team_name,
+        SUM(ps.kills) AS kills,
+        SUM(ps.deaths) AS deaths,
+        SUM(ps.assists) AS assists,
+        ROUND(AVG(ps.acs), 2) AS average_acs,
+        ROUND(AVG(ps.kast), 2) AS average_kast,
+        ROUND(SUM(ps.rounds) / 5, 0) AS rounds,
+        ROUND(SUM(ps.kills) / NULLIF(SUM(ps.deaths), 0), 2) AS kd_ratio
+    FROM teams t
+    JOIN players p ON t.team_id = p.team_id
+    JOIN player_stats ps ON p.player_id = ps.player_id
+    JOIN events e ON ps.event_id = e.event_id
+    WHERE t.name IN (%s, %s)
+    GROUP BY e.event_id, e.name, t.name
+    ORDER BY e.event_id, t.name;
+    """
+
+    cursor.execute(query, (team1, team2))
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    if not rows:
+        return jsonify({"error": "No event stats found for those teams"}), 404
+
+    return jsonify({"event_stats": rows})
 
 if __name__ == "__main__":
     app.run(debug=True)

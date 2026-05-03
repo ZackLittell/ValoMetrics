@@ -19,9 +19,15 @@ CREATE TABLE matches (
     date DATE
 );
 
+CREATE TABLE events (
+    event_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(150)
+);
+
 CREATE TABLE player_stats (
     stat_id INT PRIMARY KEY AUTO_INCREMENT,
     player_id INT,
+    event_id INT,
     rounds INT,
     kills INT,
     deaths INT,
@@ -29,6 +35,6 @@ CREATE TABLE player_stats (
     acs FLOAT,
     KAST DECIMAL(5,2),
     agent VARCHAR(50),
-    FOREIGN KEY (player_id) REFERENCES players(player_id)
+    FOREIGN KEY (player_id) REFERENCES players(player_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
 );
-

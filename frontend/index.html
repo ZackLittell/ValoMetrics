@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ValoMetrics</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>ValoMetrics</h1>
@@ -35,8 +36,20 @@
     </section>
 
     <section id="charts">
-        <h2>Charts and Visualizations</h2>
-        <p>Charts will appear here</p>
+        <h2>Team Performances Across Events</h2>
+        <p>Enter two teams above and click Compare Teams to generate charts.</p>
+
+        <div class="chart-container">
+            <canvas id="acsChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="kastChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="kdChart"></canvas>
+        </div>
     </section>
 
     <script src="script.js"></script>

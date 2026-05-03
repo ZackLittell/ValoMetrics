@@ -71,3 +71,12 @@ td:first-child,
 th:first-child {
     font-weight: bold;
 }
+
+.chart-container {
+    width: 90%;
+    margin: 25px auto;
+}
+
+canvas {
+    max-height: 350px;
+}

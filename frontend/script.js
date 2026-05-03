@@ -1,3 +1,7 @@
+let acsChart = null;
+let kastChart = null;
+let kdChart = null;
+
 function searchPlayer() {
     const playerName = document.getElementById("playerSearch").value.trim();
 
@@ -29,7 +33,7 @@ function searchPlayer() {
                 <p><strong>K/D Ratio:</strong> ${(data.kills / data.deaths).toFixed(2)}</p>
                 <p><strong>ACS:</strong> ${data.acs}</p>
                 <p><strong>KAST:</strong> ${data.kast}%</p>
-                <p><strong>Agent Usage:</strong> ${data.agent_usage}</p>
+                <p><strong>Agent Usage:</strong> ${data.agent}</p>
             `;
         })
         .catch(error => {
@@ -107,8 +111,133 @@ function compareTeams() {
                     </tbody>
                 </table>
             `;
+
+            loadTeamEventCharts(teamOne, teamTwo);
         })
         .catch(error => {
             teamResults.innerHTML = `<p style="color:red;">${error.message}</p>`;
         });
+}
+
+function loadTeamEventCharts(teamOne, teamTwo) {
+    fetch(`http://127.0.0.1:5000/team-event-stats/${encodeURIComponent(teamOne)}/${encodeURIComponent(teamTwo)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("No event chart data found for those teams");
+            }
+            return response.json();
+        })
+        .then(data => {
+            renderTeamCharts(data.event_stats, teamOne, teamTwo);
+        })
+        .catch(error => {
+            document.getElementById("charts").querySelector("p").textContent = error.message;
+            clearCharts();
+        });
+}
+
+function renderTeamCharts(eventStats, teamOne, teamTwo) {
+    document.getElementById("charts").querySelector("p").textContent =
+        `${teamOne} vs ${teamTwo} across events`;
+
+    const eventNames = [...new Set(eventStats.map(row => row.event_name))];
+
+    const teamOneRows = mapRowsByEvent(eventStats, teamOne);
+    const teamTwoRows = mapRowsByEvent(eventStats, teamTwo);
+
+    acsChart = createLineChart(
+        acsChart,
+        "acsChart",
+        eventNames,
+        teamOne,
+        teamTwo,
+        eventNames.map(event => teamOneRows[event]?.average_acs ?? null),
+        eventNames.map(event => teamTwoRows[event]?.average_acs ?? null),
+        "Average ACS by Event"
+    );
+
+    kastChart = createLineChart(
+        kastChart,
+        "kastChart",
+        eventNames,
+        teamOne,
+        teamTwo,
+        eventNames.map(event => teamOneRows[event]?.average_kast ?? null),
+        eventNames.map(event => teamTwoRows[event]?.average_kast ?? null),
+        "Average KAST by Event"
+    );
+
+    kdChart = createLineChart(
+        kdChart,
+        "kdChart",
+        eventNames,
+        teamOne,
+        teamTwo,
+        eventNames.map(event => teamOneRows[event]?.kd_ratio ?? null),
+        eventNames.map(event => teamTwoRows[event]?.kd_ratio ?? null),
+        "K/D Ratio by Event"
+    );
+}
+
+function mapRowsByEvent(eventStats, teamName) {
+    const rows = {};
+
+    eventStats
+        .filter(row => row.team_name.toLowerCase() === teamName.toLowerCase())
+        .forEach(row => {
+            rows[row.event_name] = row;
+        });
+
+    return rows;
+}
+
+function createLineChart(existingChart, canvasId, labels, teamOne, teamTwo, teamOneData, teamTwoData, title) {
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    const ctx = document.getElementById(canvasId);
+
+    return new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: teamOne,
+                    data: teamOneData,
+                    tension: 0.2
+                },
+                {
+                    label: teamTwo,
+                    data: teamTwoData,
+                    tension: 0.2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: title
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function clearCharts() {
+    if (acsChart) acsChart.destroy();
+    if (kastChart) kastChart.destroy();
+    if (kdChart) kdChart.destroy();
+
+    acsChart = null;
+    kastChart = null;
+    kdChart = null;
 }
